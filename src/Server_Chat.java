@@ -55,6 +55,8 @@ public class Server_Chat {
             String clientKey = entry.getKey();
             DatagramPacket clientPacket = entry.getValue();
 
+            System.out.println("TEST");
+
         }
     }
 
