@@ -32,7 +32,7 @@ public class Server_Chat {
         String clientKEY = receivedMsg.getAddress().toString() + ":" + receivedMsg.getPort(); // Create the clientKey with IP + Port
 
         // Check if it's the first connection of the client to send the welcome msg checking that the client key is not in the hashmap
-        if(!clients.containsKey(clientKEY)) {
+         if(!clients.containsKey(clientKEY)) {
             String welcomeMsg = "[SYSTEM]: Welcome To The UDP Chat :) type /help for get the list of the all commands";
             byte[] welcomeData = welcomeMsg.getBytes();
             DatagramPacket welcomePacket = new DatagramPacket(welcomeData, welcomeData.length, receivedMsg.getAddress(), receivedMsg.getPort());
@@ -43,7 +43,7 @@ public class Server_Chat {
         }
 
         String rMsg = new String(receivedMsg.getData()).trim();
-        System.out.println("[LOG]: Message" + rMsg);
+        System.out.println("[LOG]: Message " + rMsg);
 
         broadCastMessage(serverSocket, clientKEY, rMsg);
     }
@@ -55,8 +55,13 @@ public class Server_Chat {
             String clientKey = entry.getKey();
             DatagramPacket clientPacket = entry.getValue();
 
-            System.out.println("TEST");
+            DatagramPacket dataMessage = new DatagramPacket(bufferOut, bufferOut.length, clientPacket.getAddress(), clientPacket.getPort());
 
+            try {
+                serverSocket.send(dataMessage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

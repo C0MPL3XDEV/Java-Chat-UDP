@@ -37,7 +37,7 @@ public class Client_Chat {
     }
 
     public void sendReceiveMsg (DatagramSocket clientSocket, InetAddress ipServer) throws IOException {
-        System.out.println("[SYSTEM] Write a Message: ");
+        System.out.println(": ");
         String message = in.nextLine();
 
         if (message.contentEquals("/exit")) {
@@ -53,7 +53,7 @@ public class Client_Chat {
         clientSocket.receive(receiveMsg);
 
         String dataReceived = new String(receiveMsg.getData()).trim();
-        System.out.println("[CLIENTS]: " + dataReceived);
+        System.out.println(dataReceived);
     }
 
     public static void main(String[] args) {
