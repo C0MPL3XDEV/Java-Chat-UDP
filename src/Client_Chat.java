@@ -17,7 +17,6 @@ public class Client_Chat {
         try (DatagramSocket clientSocket = new DatagramSocket()) {
 
             InetAddress ipServer = InetAddress.getByName("127.0.0.1"); // Specify the IP address of the Server
-
             starter(clientSocket, ipServer);
 
             while (true) {
@@ -37,6 +36,12 @@ public class Client_Chat {
     }
 
     public void sendReceiveMsg (DatagramSocket clientSocket, InetAddress ipServer) throws IOException {
+        DatagramPacket receiveMsg = new DatagramPacket(bufferIn, bufferIn.length);
+        clientSocket.receive(receiveMsg);
+
+        String dataReceived = new String(receiveMsg.getData()).trim();
+        System.out.println(dataReceived);
+
         System.out.println(": ");
         String message = in.nextLine();
 
@@ -49,11 +54,6 @@ public class Client_Chat {
         DatagramPacket sendMsgPacket = new DatagramPacket(bufferOut, bufferOut.length, ipServer, PORT);
         clientSocket.send(sendMsgPacket);
 
-        DatagramPacket receiveMsg = new DatagramPacket(bufferIn, bufferIn.length);
-        clientSocket.receive(receiveMsg);
-
-        String dataReceived = new String(receiveMsg.getData()).trim();
-        System.out.println(dataReceived);
     }
 
     public static void main(String[] args) {

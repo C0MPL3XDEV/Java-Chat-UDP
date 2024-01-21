@@ -24,6 +24,26 @@ public class Server_Chat {
         }
     }
 
+    private void broadCastMessage(DatagramSocket serverSocket, String senderKey, String message) {
+        bufferOut = message.getBytes();
+
+        for (Map.Entry<String, DatagramPacket> entry : clients.entrySet()) {
+            String clientKey = entry.getKey();
+            DatagramPacket clientPacket = entry.getValue();
+
+            if (!clientKey.equals(senderKey)) {
+                DatagramPacket dataMessage = new DatagramPacket(bufferOut, bufferOut.length, clientPacket.getAddress(), clientPacket.getPort());
+
+                try {
+                    serverSocket.send(dataMessage);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+    }
+
     public void receiveSendMsg(DatagramSocket serverSocket) throws IOException {
 
         DatagramPacket receivedMsg = new DatagramPacket(bufferIn, bufferIn.length);
@@ -33,7 +53,7 @@ public class Server_Chat {
 
         // Check if it's the first connection of the client to send the welcome msg checking that the client key is not in the hashmap
          if(!clients.containsKey(clientKEY)) {
-            String welcomeMsg = "[SYSTEM]: Welcome To The UDP Chat :) type /help for get the list of the all commands";
+            String welcomeMsg = "[SYSTEM]: Welcome type /help for get the list of the all commands";
             byte[] welcomeData = welcomeMsg.getBytes();
             DatagramPacket welcomePacket = new DatagramPacket(welcomeData, welcomeData.length, receivedMsg.getAddress(), receivedMsg.getPort());
             serverSocket.send(welcomePacket);
@@ -46,23 +66,6 @@ public class Server_Chat {
         System.out.println("[LOG]: Message " + rMsg);
 
         broadCastMessage(serverSocket, clientKEY, rMsg);
-    }
-
-    private void broadCastMessage(DatagramSocket serverSocket, String senderKey, String message) {
-        bufferOut = message.getBytes();
-
-        for (Map.Entry<String, DatagramPacket> entry : clients.entrySet()) {
-            String clientKey = entry.getKey();
-            DatagramPacket clientPacket = entry.getValue();
-
-            DatagramPacket dataMessage = new DatagramPacket(bufferOut, bufferOut.length, clientPacket.getAddress(), clientPacket.getPort());
-
-            try {
-                serverSocket.send(dataMessage);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public static void main(String[] args) {
