@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 public class Client_Chat {
 
-    public static final int PORT = 4567;
+    public static final int PORT = 8956;
 
     byte[] bufferIn = new byte[1024];
     byte[] bufferOut = new byte[1024];
