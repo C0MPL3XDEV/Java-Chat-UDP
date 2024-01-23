@@ -26,7 +26,7 @@ public class Server_Chat implements Runnable {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }, "Socket");
+            });
             receiveSendThread.start();
 
         } catch (Exception e) {
@@ -36,11 +36,7 @@ public class Server_Chat implements Runnable {
 
     public void receiveMessage(DatagramSocket serverSocket) throws IOException {
         DatagramPacket messageReceived = new DatagramPacket(bufferIn, bufferIn.length);
-        try {
-            serverSocket.send(messageReceived);
-        } finally {
-            serverSocket.close();
-        }
+        serverSocket.receive(messageReceived);
 
         String clientKEY = messageReceived.getAddress().toString() + ":" + messageReceived.getPort();
 
@@ -77,7 +73,7 @@ public class Server_Chat implements Runnable {
     }
 
     public static void main(String[] args) {
-        Thread serverThread = new Thread(new Server_Chat());
-        serverThread.start();
+        Server_Chat serverChat = new Server_Chat();
+        serverChat.run();
     }
 }
