@@ -1,71 +1,75 @@
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Server_Chat {
-    public static final int PORT = 8956;
+public class Server_Chat implements Runnable {
+
+    public static final int PORT = 4567;
     byte[] bufferIn = new byte[1024];
     byte[] bufferOut = new byte[1024];
 
-    // Create a Map and HashMap (Data Structures) we use to trace the connected clients
-    // every client will have unique key (IP + Port) The HashMap allows each key to be associated with a value,
-    // which in our case is a DatagramPacket object representing the client (with this we get information about the client)
-    private static final Map<String, DatagramPacket> clients = new HashMap<>();
+    Map<String, DatagramPacket> clients = new HashMap<>();
 
+    @Override
     public void run() {
         try (DatagramSocket serverSocket = new DatagramSocket(PORT)) {
-            while (true) {
-                receiveSendMsg(serverSocket);
-            }
+            System.out.println("[LOG]: Server Started AT: " + PORT);
+
+            Thread receiveSendThread = new Thread(() -> {
+                try {
+                    while (true) {
+                        receiveMessage(serverSocket);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            receiveSendThread.start();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void broadCastMessage(DatagramSocket serverSocket, String senderKey, String message) {
-        bufferOut = message.getBytes();
+    public void receiveMessage(DatagramSocket serverSocket) throws IOException {
+        DatagramPacket messageReceived = new DatagramPacket(bufferIn, bufferIn.length);
+        serverSocket.receive(messageReceived);
 
-        for (Map.Entry<String, DatagramPacket> entry : clients.entrySet()) {
-            String clientKey = entry.getKey();
-            DatagramPacket clientPacket = entry.getValue();
+        String clientKEY = messageReceived.getAddress().toString() + ":" + messageReceived.getPort();
 
-            if (!clientKey.equals(senderKey)) {
-                DatagramPacket dataMessage = new DatagramPacket(bufferOut, bufferOut.length, clientPacket.getAddress(), clientPacket.getPort());
+        if (!clients.containsKey(clientKEY)) {
+            String welcomeMessage = "[SYSTEM]: Welcome into the Chat - Type /help for commands";
+            byte[] welcomeBuffer = welcomeMessage.getBytes();
 
-                try {
-                    serverSocket.send(dataMessage);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }
-    }
-
-    public void receiveSendMsg(DatagramSocket serverSocket) throws IOException {
-
-        DatagramPacket receivedMsg = new DatagramPacket(bufferIn, bufferIn.length);
-        serverSocket.receive(receivedMsg);
-
-        String clientKEY = receivedMsg.getAddress().toString() + ":" + receivedMsg.getPort(); // Create the clientKey with IP + Port
-
-        // Check if it's the first connection of the client to send the welcome msg checking that the client key is not in the hashmap
-         if(!clients.containsKey(clientKEY)) {
-            String welcomeMsg = "[SYSTEM]: Welcome type /help for get the list of the all commands";
-            byte[] welcomeData = welcomeMsg.getBytes();
-            DatagramPacket welcomePacket = new DatagramPacket(welcomeData, welcomeData.length, receivedMsg.getAddress(), receivedMsg.getPort());
+            DatagramPacket welcomePacket = new DatagramPacket(welcomeBuffer, welcomeBuffer.length, messageReceived.getAddress(), messageReceived.getPort());
             serverSocket.send(welcomePacket);
 
-            clients.put(clientKEY, receivedMsg); // Put the info of the new client in the hashMap.
+            clients.put(clientKEY, messageReceived);
             System.out.println("[LOG]: New Client Connected: " + clientKEY);
         }
 
-        String rMsg = new String(receivedMsg.getData()).trim();
-        System.out.println("[LOG]: Message " + rMsg);
+        String receivedMsg = new String(messageReceived.getData()).trim();
+        System.out.println("[LOG]: Message From: " + clientKEY + receivedMsg);
 
-        broadCastMessage(serverSocket, clientKEY, rMsg);
+        broadCastMessage(serverSocket, receivedMsg);
+    }
+
+    public void broadCastMessage (DatagramSocket serverSocket, String message) {
+        bufferOut = message.getBytes(StandardCharsets.UTF_8);
+
+        for (Map.Entry<String, DatagramPacket> entry : clients.entrySet()) {
+            DatagramPacket clientPacket = entry.getValue();
+
+            DatagramPacket dataPacket = new DatagramPacket(bufferOut, bufferOut.length, clientPacket.getAddress(), clientPacket.getPort());
+            try {
+                serverSocket.send(dataPacket);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static void main(String[] args) {
