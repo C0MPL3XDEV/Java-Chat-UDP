@@ -22,6 +22,7 @@ public class Client_Chat  {
         try  {
             DatagramSocket clientSocket = new DatagramSocket();
             clientSocket.connect(new InetSocketAddress(IPServer, PORT));
+
             NetworkHandler networkHandler = new NetworkHandler(clientSocket);
             KeyboardHandler keyboardHandler = new KeyboardHandler();
 
@@ -29,7 +30,7 @@ public class Client_Chat  {
             keyboardHandler.start();
 
             while (keyboardHandler.peek() == null) {
-
+                
             }
 
             String name = keyboardHandler.listPoll();
@@ -44,6 +45,7 @@ public class Client_Chat  {
                 }
                 while (keyboardHandler.peek() != null ) {
                     message = keyboardHandler.listPoll();
+                    System.out.println(message);
                     networkHandler.sendMsg(message);
                 }
             }
